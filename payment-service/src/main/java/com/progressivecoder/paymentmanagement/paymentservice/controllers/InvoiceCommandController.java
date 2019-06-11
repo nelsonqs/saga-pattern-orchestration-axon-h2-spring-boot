@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
-@RequestMapping(value = "/api/orders")
-@Api(value = "Order Commands", description = "Order Commands Related Endpoints", tags = "Order Commands")
+@RequestMapping(value = "/api/payment")
+@Api(value = "Payment Commands", description = "Payment Commands Related Endpoints", tags = "Payment Commands")
 public class InvoiceCommandController {
 
     private InvoiceCommandService invoiceCommandService;
