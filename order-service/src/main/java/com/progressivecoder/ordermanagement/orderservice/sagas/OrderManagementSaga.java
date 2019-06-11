@@ -43,19 +43,19 @@ public class OrderManagementSaga {
         System.out.println("order id" + orderCreatedEvent.orderId);
         //send the commands
         // call rest template
-        String dataOrder = comunicationService.putCommand(paymentId,orderCreatedEvent.orderId);
-        System.out.println("OrderCreatedEvent: "+dataOrder);
-
-        commandGateway.send(new CreateInvoiceCommand(paymentId, orderCreatedEvent.orderId));
+        String paymentMSId = comunicationService.putCommand(paymentId, orderCreatedEvent.orderId);
+        System.out.println("PaymentMicroServiceId: " + paymentMSId);
+        if (paymentMSId != null && !paymentMSId.isEmpty()) {
+            commandGateway.send(new CreateInvoiceCommand(paymentId, orderCreatedEvent.orderId));
+        } else {
+            SagaLifecycle.removeAssociationWith("paymentId", paymentId);
+        }
     }
 
     @SagaEventHandler(associationProperty = "paymentId")
-    public void handle(InvoiceCreatedEvent invoiceCreatedEvent){
+    public void handle(InvoiceCreatedEvent invoiceCreatedEvent) {
         String shippingId = UUID.randomUUID().toString();
-
         System.out.println("Saga continued payment");
-        //para desasociar
-        //SagaLifecycle.removeAssociationWith ("shipping", shippingId )
         //associate Saga with shipping
         SagaLifecycle.associateWith("shipping", shippingId);
         //send the create shipping command
@@ -63,13 +63,13 @@ public class OrderManagementSaga {
     }
 
     @SagaEventHandler(associationProperty = "orderId")
-    public void handle(OrderShippedEvent orderShippedEvent){
+    public void handle(OrderShippedEvent orderShippedEvent) {
         System.out.println("Saga continued order");
         commandGateway.send(new UpdateOrderStatusCommand(orderShippedEvent.orderId, String.valueOf(OrderStatus.SHIPPED)));
     }
 
     @SagaEventHandler(associationProperty = "orderId")
-    public void handle(OrderUpdatedEvent orderUpdatedEvent){
+    public void handle(OrderUpdatedEvent orderUpdatedEvent) {
         System.out.println("Saga end");
         SagaLifecycle.end();
     }

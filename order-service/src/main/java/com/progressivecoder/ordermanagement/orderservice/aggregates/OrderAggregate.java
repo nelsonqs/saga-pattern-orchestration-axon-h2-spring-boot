@@ -31,6 +31,8 @@ public class OrderAggregate {
 
     @CommandHandler
     public OrderAggregate(CreateOrderCommand createOrderCommand){
+
+
         AggregateLifecycle.apply(new OrderCreatedEvent(createOrderCommand.orderId, createOrderCommand.itemType,
                 createOrderCommand.price, createOrderCommand.currency, createOrderCommand.orderStatus));
     }

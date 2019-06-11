@@ -6,7 +6,6 @@ import com.progressivecoder.ordermanagement.orderservice.config.Constants;
 import com.progressivecoder.ordermanagement.orderservice.commands.InvoiceCreateDTO;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Service;
@@ -14,7 +13,6 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import java.net.ConnectException;
 import java.text.MessageFormat;
 
 @Service
@@ -37,7 +35,7 @@ public class ComunicationServiceImpl implements ComunicationService {
 
         HttpEntity<?> entity = new HttpEntity<>(invoiceCreateDTO, headers);
 
-        ResponseEntity<String> response = null;
+        ResponseEntity<String> response;
         restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
         try {
             //todo call to discovery to obtain Link Schemma
