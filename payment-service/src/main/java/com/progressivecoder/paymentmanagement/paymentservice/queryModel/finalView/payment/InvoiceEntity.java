@@ -2,8 +2,10 @@ package com.progressivecoder.paymentmanagement.paymentservice.queryModel.finalVi
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
 @Entity
+@Table(name = "Invoice")
 public class InvoiceEntity {
     @Id
     private String paymentId;
