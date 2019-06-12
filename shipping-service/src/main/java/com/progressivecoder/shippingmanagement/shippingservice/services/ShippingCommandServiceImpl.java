@@ -18,6 +18,6 @@ public class ShippingCommandServiceImpl implements ShippingCommandService {
 
     @Override
     public CompletableFuture<String> shippingOrder(ShippingCreateDTO invoiceCreateDTO) {
-        return commandGateway.send(new CreateShippingCommand(invoiceCreateDTO.getShippingId(), invoiceCreateDTO.getOrderId(), invoiceCreateDTO.getPaymentId()));
+        return commandGateway.send(new CreateShippingCommand(invoiceCreateDTO.getShippingId(), invoiceCreateDTO.getOrderId(), invoiceCreateDTO.getPaymentId(), invoiceCreateDTO.getItem()));
     }
 }

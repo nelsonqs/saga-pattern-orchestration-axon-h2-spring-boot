@@ -1,14 +1,21 @@
-package com.progressivecoder.shippingmanagement.shippingservice.dto;
+package com.progressivecoder.shippingmanagement.shippingservice.queryModel.finalView.shipping;
 
-public class ShippingCreateDTO {
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
+@Entity
+@Table(name = "Shipping")
+public class ShippingEntity {
+    @Id
     private String shippingId;
 
-    private String orderId;
-
     private String paymentId;
-
+    private String orderId;
     private String item;
+
+    public ShippingEntity() {
+    }
 
     public String getShippingId() {
         return shippingId;
@@ -18,20 +25,20 @@ public class ShippingCreateDTO {
         this.shippingId = shippingId;
     }
 
-    public String getOrderId() {
-        return orderId;
-    }
-
-    public void setOrderId(String orderId) {
-        this.orderId = orderId;
-    }
-
     public String getPaymentId() {
         return paymentId;
     }
 
     public void setPaymentId(String paymentId) {
         this.paymentId = paymentId;
+    }
+
+    public String getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(String orderId) {
+        this.orderId = orderId;
     }
 
     public String getItem() {

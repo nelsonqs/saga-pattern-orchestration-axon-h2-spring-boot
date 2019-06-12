@@ -11,6 +11,7 @@ public class InvoiceEntity {
     private String paymentId;
     private String orderId;
     private String invoiceStatus;
+    private String ammount;
 
     public InvoiceEntity() {
     }
@@ -37,5 +38,13 @@ public class InvoiceEntity {
 
     public void setInvoiceStatus(String invoiceStatus) {
         this.invoiceStatus = invoiceStatus;
+    }
+
+    public String getAmmount() {
+        return ammount;
+    }
+
+    public void setAmmount(String ammount) {
+        this.ammount = ammount;
     }
 }

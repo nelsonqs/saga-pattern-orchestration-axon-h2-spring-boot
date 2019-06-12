@@ -9,8 +9,11 @@ public class CreateInvoiceCommand {
 
     public final String orderId;
 
-    public CreateInvoiceCommand(String paymentId, String orderId) {
+    public final String ammount;
+
+    public CreateInvoiceCommand(String paymentId, String orderId, String ammount ) {
         this.paymentId = paymentId;
         this.orderId = orderId;
+        this.ammount = ammount;
     }
 }

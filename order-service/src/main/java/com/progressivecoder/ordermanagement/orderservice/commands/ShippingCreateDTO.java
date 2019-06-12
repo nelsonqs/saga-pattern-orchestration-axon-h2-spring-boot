@@ -1,4 +1,4 @@
-package com.progressivecoder.shippingmanagement.shippingservice.dto;
+package com.progressivecoder.ordermanagement.orderservice.commands;
 
 public class ShippingCreateDTO {
 

@@ -18,17 +18,21 @@ public class ShippingAggregate {
 
     private String paymentId;
 
+    private String item;
+
     public ShippingAggregate() {
     }
 
     @CommandHandler
     public ShippingAggregate(CreateShippingCommand createShippingCommand){
-        AggregateLifecycle.apply(new OrderShippedEvent(createShippingCommand.shippingId, createShippingCommand.orderId, createShippingCommand.paymentId));
+        AggregateLifecycle.apply(new OrderShippedEvent(createShippingCommand.shippingId, createShippingCommand.orderId, createShippingCommand.paymentId, createShippingCommand.item));
     }
 
     @EventSourcingHandler
     protected void on(OrderShippedEvent orderShippedEvent){
         this.shippingId = orderShippedEvent.shippingId;
         this.orderId = orderShippedEvent.orderId;
+        this.paymentId = orderShippedEvent.paymentId;
+        this.item = orderShippedEvent.item;
     }
 }

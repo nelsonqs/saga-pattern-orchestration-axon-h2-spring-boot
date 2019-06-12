@@ -8,9 +8,12 @@ public class OrderShippedEvent {
 
     public final String paymentId;
 
-    public OrderShippedEvent(String shippingId, String orderId, String paymentId) {
+    public final String item;
+
+    public OrderShippedEvent(String shippingId, String orderId, String paymentId, String item) {
         this.shippingId = shippingId;
         this.orderId = orderId;
         this.paymentId = paymentId;
+        this.item = item;
     }
 }

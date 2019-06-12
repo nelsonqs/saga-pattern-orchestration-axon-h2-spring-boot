@@ -33,6 +33,7 @@ public class InvoiceHandler {
         accountQueryEntity.setPaymentId(event.paymentId);
         accountQueryEntity.setOrderId(event.orderId);
         accountQueryEntity.setInvoiceStatus("PAID");
+        accountQueryEntity.setAmmount(event.ammount);
         return accountQueryEntity;
     }
     private void persistInvoice(InvoiceEntity accountQueryEntity){

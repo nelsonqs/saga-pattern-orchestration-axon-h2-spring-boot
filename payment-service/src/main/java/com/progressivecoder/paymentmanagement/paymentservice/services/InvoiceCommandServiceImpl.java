@@ -18,6 +18,6 @@ public class InvoiceCommandServiceImpl implements InvoiceCommandService {
 
     @Override
     public CompletableFuture<String> invoiceOrder(InvoiceCreateDTO invoiceCreateDTO) {
-        return commandGateway.send(new CreateInvoiceCommand(invoiceCreateDTO.getPaymentId(), invoiceCreateDTO.getOrderId()));
+        return commandGateway.send(new CreateInvoiceCommand(invoiceCreateDTO.getPaymentId(), invoiceCreateDTO.getOrderId(), invoiceCreateDTO.getAmmount()));
     }
 }
