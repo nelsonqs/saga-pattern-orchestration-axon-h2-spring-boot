@@ -28,8 +28,8 @@ public class SwaggerConfig {
 
     private ApiInfo getApiInfo(){
         return new ApiInfo(
-                "Saga Pattern Implementation using Axon and Spring Boot",
-                "App to demonstrate Saga Pattern using Axon and Spring Boot",
+                "Saga Pattern Implementation Microservices Payment ",
+                "App to demonstrate Saga Pattern Order, payment and shipping services ",
                 "1.0.0",
                 "Terms of Service",
                 new Contact("Saurabh Dashora", "progressivecoder.com", "coder.progressive@gmail.com"),
