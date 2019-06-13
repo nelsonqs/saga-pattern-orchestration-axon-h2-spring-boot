@@ -2,9 +2,9 @@ package com.progressivecoder.ordermanagement.orderservice.comunicator;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonParser;
+import com.progressivecoder.ordermanagement.orderservice.commands.InvoiceCreateDTO;
 import com.progressivecoder.ordermanagement.orderservice.commands.ShippingCreateDTO;
 import com.progressivecoder.ordermanagement.orderservice.config.Constants;
-import com.progressivecoder.ordermanagement.orderservice.commands.InvoiceCreateDTO;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.http.*;
@@ -25,7 +25,7 @@ public class ComunicationServiceImpl implements ComunicationService {
     }
 
     @Override
-    public String putCommand(String payment, String order, String ammount) {
+    public String paymentRest(String payment, String order, String ammount, String status) {
         JSONObject info = new JSONObject();
         HttpHeaders headers = new HttpHeaders();
         headers.set("Accept", MediaType.APPLICATION_JSON_VALUE);
@@ -38,9 +38,13 @@ public class ComunicationServiceImpl implements ComunicationService {
 
         ResponseEntity<String> response;
         restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+        String formatted_URL = "";
         try {
-            //todo call to discovery to obtain Link Schemma
-            String formatted_URL = MessageFormat.format(Constants.LINK_PAYMENT_SERVICES, payment, order,ammount );
+            if (status.equalsIgnoreCase(Constants.PAYMENT_APPROVED)) {
+                formatted_URL = MessageFormat.format(Constants.LINK_PAYMENT_SERVICES, payment, order, ammount);
+            } else if (status.equalsIgnoreCase(Constants.PAYMENT_REJECTED)) {
+                formatted_URL = MessageFormat.format(Constants.LINK_PAYMENT_REJECTED, payment, order, ammount);
+            }
             response = restTemplate.exchange(formatted_URL, HttpMethod.POST, entity, String.class);
         }
         catch (HttpServerErrorException e) {

@@ -2,6 +2,7 @@ package com.progressivecoder.paymentmanagement.paymentservice.queryModel.finalVi
 
 import com.progressivecoder.paymentmanagement.paymentservice.aggregates.InvoiceAggregate;
 import com.progressivecoder.paymentmanagement.paymentservice.events.InvoiceCreatedEvent;
+import com.progressivecoder.paymentmanagement.paymentservice.events.RejectedInvoiceEvent;
 import com.progressivecoder.paymentmanagement.paymentservice.queryModel.finalView.payment.InvoiceEntity;
 import com.progressivecoder.paymentmanagement.paymentservice.queryModel.finalView.payment.repositories.InvoiceRepository;
 import org.axonframework.eventsourcing.EventSourcingHandler;
@@ -23,6 +24,12 @@ public class InvoiceHandler {
     void on(InvoiceCreatedEvent event){
         persistInvoice(buildQueryInvoice(event));
     }
+
+    @EventSourcingHandler
+    void on(RejectedInvoiceEvent event1) {
+
+    }
+
 
     private InvoiceEntity findExistingOrCreateQueryAccount(String id){
         return invoiceRepository.findById(id).isPresent() ? invoiceRepository.findById(id).get() : new InvoiceEntity();
