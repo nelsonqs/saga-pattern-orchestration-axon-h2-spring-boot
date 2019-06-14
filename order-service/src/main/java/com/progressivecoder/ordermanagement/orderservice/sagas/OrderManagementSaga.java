@@ -108,7 +108,9 @@ public class OrderManagementSaga {
 
     @SagaEventHandler(associationProperty = "orderId")
     public void handle(OrderUpdatedEvent orderUpdatedEvent) {
+        log.info("============================== ");
         log.info("End Saga, bye  !!! ");
+        log.info("============================== ");
         SagaLifecycle.end();
     }
 
