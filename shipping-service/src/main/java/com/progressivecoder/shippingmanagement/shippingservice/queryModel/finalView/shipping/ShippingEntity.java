@@ -9,10 +9,10 @@ import javax.persistence.Table;
 public class ShippingEntity {
     @Id
     private String shippingId;
-
     private String paymentId;
     private String orderId;
     private String item;
+    private String status;
 
     public ShippingEntity() {
     }
@@ -47,5 +47,13 @@ public class ShippingEntity {
 
     public void setItem(String item) {
         this.item = item;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

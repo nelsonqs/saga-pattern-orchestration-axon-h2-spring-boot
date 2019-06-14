@@ -1,7 +1,7 @@
 package com.progressivecoder.paymentmanagement.paymentservice.aggregates;
 
-import com.progressivecoder.paymentmanagement.paymentservice.command.CreatePaymentCommand;
-import com.progressivecoder.paymentmanagement.paymentservice.events.PaymentCreatedEvent;
+import com.progressivecoder.paymentmanagement.paymentservice.command.RollbackPaymentCommand;
+import com.progressivecoder.paymentmanagement.paymentservice.events.RollbackPaymentEvent;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
 import org.axonframework.modelling.command.AggregateIdentifier;
@@ -9,7 +9,7 @@ import org.axonframework.modelling.command.AggregateLifecycle;
 import org.axonframework.spring.stereotype.Aggregate;
 
 @Aggregate
-public class InvoiceAggregate {
+public class RollbackPaymentAggregate {
 
     @AggregateIdentifier
     private String paymentId;
@@ -17,18 +17,18 @@ public class InvoiceAggregate {
     private String orderId;
 
     private InvoiceStatus invoiceStatus;
-    private String  ammount;
+    private String ammount;
 
-    public InvoiceAggregate() {
+    public RollbackPaymentAggregate() {
     }
 
     @CommandHandler
-    public InvoiceAggregate(CreatePaymentCommand createInvoiceCommand){
-        AggregateLifecycle.apply(new PaymentCreatedEvent(createInvoiceCommand.paymentId, createInvoiceCommand.orderId, createInvoiceCommand.ammount));
+    public RollbackPaymentAggregate(RollbackPaymentCommand rollbackInvoiceCommand) {
+        AggregateLifecycle.apply(new RollbackPaymentEvent(rollbackInvoiceCommand.paymentId, rollbackInvoiceCommand.orderId, rollbackInvoiceCommand.ammount));
     }
 
     @EventSourcingHandler
-    protected void on(PaymentCreatedEvent invoiceCreatedEvent){
+    protected void on(RollbackPaymentEvent invoiceCreatedEvent) {
         this.paymentId = invoiceCreatedEvent.paymentId;
         this.orderId = invoiceCreatedEvent.orderId;
         this.invoiceStatus = InvoiceStatus.PAID;

@@ -2,6 +2,8 @@ package com.progressivecoder.shippingmanagement.shippingservice.queryModel.final
 
 import com.progressivecoder.shippingmanagement.shippingservice.aggregates.ShippingAggregate;
 import com.progressivecoder.shippingmanagement.shippingservice.event.OrderShippedEvent;
+import com.progressivecoder.shippingmanagement.shippingservice.event.RejectedShippedEvent;
+import com.progressivecoder.shippingmanagement.shippingservice.event.RollbackShippedEvent;
 import com.progressivecoder.shippingmanagement.shippingservice.queryModel.finalView.shipping.ShippingEntity;
 import com.progressivecoder.shippingmanagement.shippingservice.queryModel.finalView.shipping.repositories.ShippingRepository;
 import org.axonframework.eventsourcing.EventSourcingHandler;
@@ -24,6 +26,19 @@ public class ShippingHandler {
         persistInvoice(buildQueryInvoice(event));
     }
 
+    @EventSourcingHandler
+    void on(RollbackShippedEvent event){
+        ShippingEntity shippingEntity =  shippingRepository.findById(event.shippingId).isPresent() ? shippingRepository.findById(event.shippingId).get() : new ShippingEntity();
+        shippingRepository.delete(shippingEntity);
+    }
+
+    @EventSourcingHandler
+    void on(RejectedShippedEvent event){
+        ShippingEntity shippingEntity =  shippingRepository.findById(event.shippingId).isPresent() ? shippingRepository.findById(event.shippingId).get() : new ShippingEntity();
+        shippingEntity.setStatus("Rejected");
+        shippingRepository.delete(shippingEntity);
+    }
+
     private ShippingEntity findExistingOrCreateQueryAccount(String id){
         return shippingRepository.findById(id).isPresent() ? shippingRepository.findById(id).get() : new ShippingEntity();
     }
@@ -34,6 +49,7 @@ public class ShippingHandler {
         accountQueryEntity.setOrderId(event.orderId);
         accountQueryEntity.setShippingId(event.shippingId);
         accountQueryEntity.setItem(event.item);
+        accountQueryEntity.setStatus("CREATED");
         return accountQueryEntity;
     }
     private void persistInvoice(ShippingEntity accountQueryEntity){

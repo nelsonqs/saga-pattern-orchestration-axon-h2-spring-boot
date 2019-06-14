@@ -2,15 +2,10 @@ package com.progressivecoder.ordermanagement.orderservice.sagas;
 
 import com.progressivecoder.ordermanagement.orderservice.OrderCreateEntity;
 import com.progressivecoder.ordermanagement.orderservice.aggregates.OrderStatus;
-import com.progressivecoder.ordermanagement.orderservice.commands.CreateInvoiceCommand;
-import com.progressivecoder.ordermanagement.orderservice.commands.CreateShippingCommand;
-import com.progressivecoder.ordermanagement.orderservice.commands.UpdateOrderStatusCommand;
+import com.progressivecoder.ordermanagement.orderservice.commands.*;
 import com.progressivecoder.ordermanagement.orderservice.comunicator.ComunicationService;
 import com.progressivecoder.ordermanagement.orderservice.config.Constants;
-import com.progressivecoder.ordermanagement.orderservice.events.InvoiceCreatedEvent;
-import com.progressivecoder.ordermanagement.orderservice.events.OrderCreatedEvent;
-import com.progressivecoder.ordermanagement.orderservice.events.OrderShippedEvent;
-import com.progressivecoder.ordermanagement.orderservice.events.OrderUpdatedEvent;
+import com.progressivecoder.ordermanagement.orderservice.events.*;
 import com.progressivecoder.ordermanagement.orderservice.repository.OrderRepository;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.modelling.saga.SagaEventHandler;
@@ -21,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import java.math.BigDecimal;
 import java.util.UUID;
 
 
@@ -35,16 +31,15 @@ public class OrderManagementSaga {
     @Inject
     private transient OrderRepository orderRepository;
 
-
     @StartSaga
     @SagaEventHandler(associationProperty = "orderId")
     public void handle(OrderCreatedEvent orderCreatedEvent) {
         String paymentId = UUID.randomUUID().toString();
+        String orderStatus;
         log.info("============================== ");
         log.info("Start Saga !!!!  ");
         log.info("============================== ");
-        log.info("Start Order with Id " + orderCreatedEvent.orderId);
-        SagaLifecycle.associateWith("paymentId", paymentId);
+        log.info("Start Order ");
         OrderCreateEntity orderCreateEntity =  orderRepository.findById(orderCreatedEvent.orderId).isPresent() ? orderRepository.findById(orderCreatedEvent.orderId).get() : new OrderCreateEntity();
         if (orderCreateEntity != null) {
             orderCreateEntity.setOrderId( orderCreatedEvent.orderId);
@@ -53,48 +48,104 @@ public class OrderManagementSaga {
             orderCreateEntity.setItem(orderCreatedEvent.itemType);
             orderCreateEntity.setStatus(Constants.ORDER_CREATED_STATUS);
             orderRepository.save(orderCreateEntity);
+            log.info("Order created Id " + orderCreatedEvent.orderId);
         }
-        String statusPayment = Constants.PAYMENT_REJECTED;
-        String paymentMSId = comunicationService.paymentRest(paymentId, orderCreatedEvent.orderId, String.valueOf(orderCreatedEvent.price), statusPayment);
-        log.info("Result to call MicroServices Paymment: " + paymentMSId);
-        if (paymentMSId != null && !paymentMSId.isEmpty() && statusPayment.equalsIgnoreCase(Constants.PAYMENT_APPROVED)) {
-            log.info("Result OK!!!, to call << Payment >> Micro Service: " + paymentMSId);
-            commandGateway.send(new CreateInvoiceCommand(paymentId, orderCreatedEvent.orderId, orderCreatedEvent.itemType));
-        } else {
-            log.error("Result ERROR!!!, to call to <<Paymment>> Micro Service: " + paymentMSId);
-            OrderCreateEntity orderRejected = orderRepository.findById(orderCreatedEvent.orderId).isPresent() ? orderRepository.findById(orderCreatedEvent.orderId).get() : new OrderCreateEntity();
-            if (orderRejected != null) {
-                orderRejected.setOrderId(orderCreatedEvent.orderId);
-                orderRejected.setCurrency(orderCreatedEvent.currency);
-                orderRejected.setPrice(String.valueOf(orderCreatedEvent.price));
-                orderRejected.setItem(orderCreatedEvent.itemType);
-                orderRejected.setStatus(Constants.ORDER_REJECTED_STATUS);
-                orderRepository.save(orderRejected);
-            }
-            compensateOrder(orderCreatedEvent.orderId);
+        orderStatus = Constants.ORDER_CREATED_STATUS;
+        //orderStatus = Constants.ORDER_REJECTED_STATUS;
+        //orderStatus = Constants.ORDER_ROLLBACK_STATUS;
+        if (orderStatus.equalsIgnoreCase(Constants.ORDER_CREATED_STATUS)) {
+            SagaLifecycle.associateWith("paymentId", paymentId);
+            log.info("Result OK!!!, to call << Payment >> Micro Service: ");
+            commandGateway.send(new CreatePaymentCommand(paymentId, orderCreatedEvent.orderId, orderCreatedEvent.itemType));
+        } else if (orderStatus.equalsIgnoreCase(Constants.ORDER_REJECTED_STATUS)) {
+            log.info("Rejected ...  ");
+            commandGateway.send(new RejectedOrderCommand(orderCreatedEvent.orderId, orderCreatedEvent.itemType,
+                                                         orderCreatedEvent.price,orderCreatedEvent.currency, orderCreatedEvent.orderStatus));
+        } else if (orderStatus.equalsIgnoreCase(Constants.ORDER_ROLLBACK_STATUS)) {
+            log.info("Rollback ...  ");
+            commandGateway.send(new RollbackOrderCommand(orderCreatedEvent.orderId, orderCreatedEvent.itemType,
+                    orderCreatedEvent.price,orderCreatedEvent.currency, orderCreatedEvent.orderStatus));
+        }
+    }
+    @SagaEventHandler(associationProperty = "orderId")
+    public void handle(RollbackOrderEvent rollbackOrderEvent) {
+        log.info("============================== ");
+        log.info("Rollback Order !!!!  ");
+        log.info("============================== ");
+        OrderCreateEntity orderCreateEntity =  orderRepository.findById(rollbackOrderEvent.orderId).isPresent() ? orderRepository.findById(rollbackOrderEvent.orderId).get() : new OrderCreateEntity();
+        if (orderCreateEntity != null) {
+            orderRepository.delete(orderCreateEntity);
+            SagaLifecycle.removeAssociationWith("orderId", rollbackOrderEvent.orderId);
+            SagaLifecycle.end();
         }
     }
 
-    private void compensateOrder(String orderId) {
-        log.error("Call to Compensate ORDER, aborted Mission X) " + orderId);
-       SagaLifecycle.removeAssociationWith("orderId", orderId);
-       SagaLifecycle.end();
+    @SagaEventHandler(associationProperty = "orderId")
+    public void handle(RejectedOrderEvent rejectedOrderEvent) {
+        log.info("============================== ");
+        log.info("Rejected Order !!!!  ");
+        log.info("============================== ");
+        updateOrderRepositoryWithRejectStatus(rejectedOrderEvent.orderId);
+        SagaLifecycle.removeAssociationWith("orderId", rejectedOrderEvent.orderId);
+        SagaLifecycle.end();
     }
 
 
     @SagaEventHandler(associationProperty = "paymentId")
-    public void handle(InvoiceCreatedEvent invoiceCreatedEvent) {
+    public void handle(PaymentCreatedEvent paymentCreatedEvent) {
         String shippingId = UUID.randomUUID().toString();
-        log.info("Start Payment with Id " + invoiceCreatedEvent.paymentId);
-        //associate Saga with shipping
-        SagaLifecycle.associateWith("shipping", shippingId);
-        String shippingMSId = comunicationService.putCommandShipping(shippingId, invoiceCreatedEvent.paymentId, invoiceCreatedEvent.orderId,invoiceCreatedEvent.item);
-        if (shippingMSId != null && !shippingMSId.isEmpty()) {
-            log.info("Result OK!!!, to call to << Shipping >>  Micro Service: " + shippingMSId);
-            commandGateway.send(new CreateShippingCommand(shippingId, invoiceCreatedEvent.orderId, invoiceCreatedEvent.paymentId));
-        } else {
-            log.error("Result ERROR!!!, to call to << Shipping >> Micro Service: " + shippingMSId);
-            compensatePayment(invoiceCreatedEvent.paymentId,invoiceCreatedEvent.orderId );
+        String paymmentStatus;
+        paymmentStatus = Constants.PAYMENT_APPROVED;
+        //paymmentStatus = Constants.PAYMENT_REJECTED;
+        //paymmentStatus = Constants.PAYMENT_ROLLBACK;
+        if (paymmentStatus.equalsIgnoreCase(Constants.PAYMENT_APPROVED)) {
+            String paymentMSId = comunicationService.paymentRest(paymentCreatedEvent.paymentId, paymentCreatedEvent.orderId, String.valueOf("1000000"), paymmentStatus);
+            SagaLifecycle.associateWith("shipping", shippingId);
+            log.info("Result OK!!!, to call << Shipping >> Micro Service: ");
+            commandGateway.send(new CreateShippingCommand(shippingId, paymentCreatedEvent.orderId, paymentCreatedEvent.paymentId, paymentCreatedEvent.item));
+        } else if (paymmentStatus.equalsIgnoreCase(Constants.PAYMENT_REJECTED)) {
+            log.info("Rejected ...  ");
+            commandGateway.send(new RejectedPaymentCommand(paymentCreatedEvent.paymentId, paymentCreatedEvent.orderId, paymentCreatedEvent.item));
+        } else if (paymmentStatus.equalsIgnoreCase(Constants.PAYMENT_ROLLBACK)) {
+            log.info("Rollback ...  ");
+            commandGateway.send(new RollbackPaymentCommand(paymentCreatedEvent.paymentId, paymentCreatedEvent.orderId,paymentCreatedEvent.item));
+        }
+    }
+
+    @SagaEventHandler(associationProperty = "paymentId")
+    public void handle(RejectedPaymentEvent rejectedOrderEvent) {
+        log.info("============================== ");
+        log.info("Rejected Payment !!!!  ");
+        log.info("============================== ");
+        String paymmentStatus = Constants.PAYMENT_REJECTED;
+        comunicationService.paymentRest(rejectedOrderEvent.paymentId, rejectedOrderEvent.orderId, String.valueOf("1000000"), paymmentStatus);
+        SagaLifecycle.removeAssociationWith("paymentId", rejectedOrderEvent.paymentId);
+        updateOrderRepositoryWithRejectStatus(rejectedOrderEvent.orderId);
+        SagaLifecycle.removeAssociationWith("orderId", rejectedOrderEvent.orderId);
+        SagaLifecycle.end();
+    }
+
+    @SagaEventHandler(associationProperty = "paymentId")
+    public void handle(RollbackPaymentEvent rollbackPaymentEvent) {
+        log.info("============================== ");
+        log.info("Rollback Payment !!!!  ");
+        log.info("============================== ");
+        String paymmentStatus = Constants.PAYMENT_ROLLBACK;
+        comunicationService.paymentRest(rollbackPaymentEvent.paymentId, rollbackPaymentEvent.orderId, String.valueOf("1000000"), paymmentStatus);
+        SagaLifecycle.removeAssociationWith("paymentId", rollbackPaymentEvent.paymentId);
+        OrderCreateEntity orderCreateEntity =  orderRepository.findById(rollbackPaymentEvent.orderId).isPresent() ? orderRepository.findById(rollbackPaymentEvent.orderId).get() : new OrderCreateEntity();
+        if (orderCreateEntity != null) {
+            orderRepository.delete(orderCreateEntity);
+            SagaLifecycle.removeAssociationWith("orderId", rollbackPaymentEvent.orderId);
+        }
+        SagaLifecycle.end();
+    }
+
+    private void updateOrderRepositoryWithRejectStatus(String orderId) {
+        OrderCreateEntity orderRejected =  orderRepository.findById(orderId).isPresent() ? orderRepository.findById(orderId).get() : new OrderCreateEntity();
+        if (orderRejected != null) {
+            orderRejected.setStatus(Constants.ORDER_REJECTED_STATUS);
+            orderRepository.save(orderRejected);
         }
     }
 
@@ -105,22 +156,68 @@ public class OrderManagementSaga {
         SagaLifecycle.end();
     }
 
-    @SagaEventHandler(associationProperty = "orderId")
+    @SagaEventHandler(associationProperty = "shipping")
     public void handle(OrderShippedEvent orderShippedEvent) {
-        log.info("Start Update Order delivered with Id " + orderShippedEvent.orderId);
-        OrderCreateEntity orderCreateEntity =  orderRepository.findById(orderShippedEvent.orderId).isPresent() ? orderRepository.findById(orderShippedEvent.orderId).get() : new OrderCreateEntity();
-        if (orderCreateEntity != null ) {
-            log.info("Result find order registered ID Order  : " + orderCreateEntity.getOrderId(), " with item ->", orderCreateEntity.getItem());
-            orderCreateEntity.setStatus(Constants.ORDER_DELIVERED_STATUS);
-            orderRepository.save(orderCreateEntity);
-        } else {
-            log.info("wait momment please : ");
+        String statusShipping;
+        statusShipping = Constants.SHIPPING_APPROVED;
+        //statusShipping = Constants.SHIPPING_REJECTED;
+        //statusShipping = Constants.SHIPPING_ROLLBACK;
+        if (statusShipping.equalsIgnoreCase(Constants.PAYMENT_APPROVED)) {
+            String shippingMSId = comunicationService.putCommandShipping(orderShippedEvent.shippingId, orderShippedEvent.paymentId, orderShippedEvent.orderId,orderShippedEvent.itemType, statusShipping);
+            log.info("Result OK!!!, to call << Shipping >> Micro Service: ");
+            commandGateway.send(new UpdateOrderStatusCommand(orderShippedEvent.orderId, String.valueOf(OrderStatus.SHIPPED)));
+        } else if (statusShipping.equalsIgnoreCase(Constants.PAYMENT_REJECTED)) {
+            log.info("Rejected ...  ");
+            commandGateway.send(new RejectedShippingCommand(orderShippedEvent.shippingId, orderShippedEvent.orderId, orderShippedEvent.paymentId, orderShippedEvent.itemType));
+        } else if (statusShipping.equalsIgnoreCase(Constants.PAYMENT_ROLLBACK)) {
+            log.info("Rollback ...  ");
+            commandGateway.send(new RollbackShippingCommand(orderShippedEvent.shippingId, orderShippedEvent.orderId, orderShippedEvent.paymentId, orderShippedEvent.itemType));
         }
+
+        log.info("Start Update Order delivered with Id " + orderShippedEvent.orderId);
+//        SagaLifecycle.associateWith("shipping", shippingId);
+//        String statusShipping = Constants.SHIPPING_APPROVED;
+//        String shippingMSId = comunicationService.putCommandShipping(shippingId, paymentCreatedEvent.paymentId, paymentCreatedEvent.orderId,paymentCreatedEvent.item, statusShipping);
+//        OrderCreateEntity orderCreateEntity =  orderRepository.findById(orderShippedEvent.orderId).isPresent() ? orderRepository.findById(orderShippedEvent.orderId).get() : new OrderCreateEntity();
+//        if (orderCreateEntity != null ) {
+//            log.info("Result find order registered ID Order  : " + orderCreateEntity.getOrderId(), " with item ->", orderCreateEntity.getItem());
+//            orderCreateEntity.setStatus(Constants.ORDER_DELIVERED_STATUS);
+//            orderRepository.save(orderCreateEntity);
+//        } else {
+//            log.info("wait momment please : ");
+//        }
 //        else {
 //            compensateShipment(orderShippedEvent.orderId,orderShippedEvent.paymentId, orderShippedEvent.shippingId);
 //        }
-        commandGateway.send(new UpdateOrderStatusCommand(orderShippedEvent.orderId, String.valueOf(OrderStatus.SHIPPED)));
+
     }
+
+    @SagaEventHandler(associationProperty = "shipping")
+    public void handle(RejectedShippingEvent rejectedOrderEvent) {
+        log.info("============================== ");
+        log.info("Rejected Shipping !!!!  ");
+        log.info("============================== ");
+        String shippingStatus = Constants.SHIPPING_REJECTED;
+        comunicationService.putCommandShipping(rejectedOrderEvent.shippingId, rejectedOrderEvent.paymentId, rejectedOrderEvent.orderId, rejectedOrderEvent.itemType, shippingStatus);
+        SagaLifecycle.removeAssociationWith("paymentId", rejectedOrderEvent.paymentId);
+        updateOrderRepositoryWithRejectStatus(rejectedOrderEvent.orderId);
+        SagaLifecycle.removeAssociationWith("orderId", rejectedOrderEvent.orderId);
+        SagaLifecycle.end();
+    }
+
+    @SagaEventHandler(associationProperty = "shipping")
+    public void handle(RollbackShippingEvent rollbackShippingEvent) {
+        log.info("============================== ");
+        log.info("Rejected Shipping !!!!  ");
+        log.info("============================== ");
+        String shippingStatus = Constants.SHIPPING_REJECTED;
+        comunicationService.putCommandShipping(rollbackShippingEvent.shippingId, rollbackShippingEvent.paymentId, rollbackShippingEvent.orderId, rollbackShippingEvent.itemType, shippingStatus);
+        SagaLifecycle.removeAssociationWith("paymentId", rollbackShippingEvent.paymentId);
+        updateOrderRepositoryWithRejectStatus(rollbackShippingEvent.orderId);
+        SagaLifecycle.removeAssociationWith("orderId", rollbackShippingEvent.orderId);
+        SagaLifecycle.end();
+    }
+
 
     private void compensateShipment(String orderId, String paymentId, String shippingId) {
         log.error("Call to COMPENSATE SHIPPMENT, aborted Mission X) order ID" + orderId + " payment id: " + paymentId, "shipping id", shippingId);

@@ -2,7 +2,7 @@ package com.progressivecoder.ordermanagement.orderservice.commands;
 
 import org.axonframework.modelling.command.TargetAggregateIdentifier;
 
-public class CreateShippingCommand {
+public class RejectedShippingCommand {
 
     @TargetAggregateIdentifier
     public final String shippingId;
@@ -10,7 +10,7 @@ public class CreateShippingCommand {
     public final String paymentId;
     public final String itemType;
 
-    public CreateShippingCommand(String shippingId, String orderId, String paymentId, String itemType) {
+    public RejectedShippingCommand(String shippingId, String orderId, String paymentId, String itemType) {
         this.shippingId = shippingId;
         this.orderId = orderId;
         this.paymentId = paymentId;

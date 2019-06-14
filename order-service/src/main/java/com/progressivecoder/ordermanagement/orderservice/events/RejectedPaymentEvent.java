@@ -1,6 +1,6 @@
 package com.progressivecoder.ordermanagement.orderservice.events;
 
-public class InvoiceCreatedEvent  {
+public class RejectedPaymentEvent {
 
     public final String paymentId;
 
@@ -9,7 +9,7 @@ public class InvoiceCreatedEvent  {
     public final String item;
 
 
-    public InvoiceCreatedEvent(String paymentId, String orderId, String item) {
+    public RejectedPaymentEvent(String paymentId, String orderId, String item) {
         this.paymentId = paymentId;
         this.orderId = orderId;
         this.item = item;

@@ -1,7 +1,11 @@
 package com.progressivecoder.ordermanagement.orderservice.aggregates;
 
 import com.progressivecoder.ordermanagement.orderservice.commands.CreateShippingCommand;
+import com.progressivecoder.ordermanagement.orderservice.commands.RejectedShippingCommand;
+import com.progressivecoder.ordermanagement.orderservice.commands.RollbackShippingCommand;
 import com.progressivecoder.ordermanagement.orderservice.events.OrderShippedEvent;
+import com.progressivecoder.ordermanagement.orderservice.events.RejectedShippingEvent;
+import com.progressivecoder.ordermanagement.orderservice.events.RollbackShippingEvent;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
 import org.axonframework.modelling.command.AggregateIdentifier;
@@ -13,22 +17,50 @@ public class ShippingAggregate {
 
     @AggregateIdentifier
     private String shippingId;
-
     private String orderId;
-
     private String paymentId;
+    private String itemType;
 
     public ShippingAggregate() {
     }
 
     @CommandHandler
     public ShippingAggregate(CreateShippingCommand createShippingCommand){
-        AggregateLifecycle.apply(new OrderShippedEvent(createShippingCommand.shippingId, createShippingCommand.orderId, createShippingCommand.paymentId));
+        AggregateLifecycle.apply(new OrderShippedEvent(createShippingCommand.shippingId, createShippingCommand.orderId, createShippingCommand.paymentId, createShippingCommand.itemType));
     }
 
     @EventSourcingHandler
     protected void on(OrderShippedEvent orderShippedEvent){
         this.shippingId = orderShippedEvent.shippingId;
         this.orderId = orderShippedEvent.orderId;
+        this.paymentId = orderShippedEvent.paymentId;
+        this.itemType = orderShippedEvent.itemType;
     }
+
+    @CommandHandler
+    protected void on(RejectedShippingCommand createOrderCommand){
+        AggregateLifecycle.apply(new RejectedShippingCommand(createOrderCommand.shippingId ,createOrderCommand.orderId, createOrderCommand.paymentId,  createOrderCommand.itemType));
+    }
+
+    @EventSourcingHandler
+    protected void on(RejectedShippingEvent rejectedShippingEvent){
+        this.shippingId = rejectedShippingEvent.shippingId;
+        this.paymentId = rejectedShippingEvent.paymentId;
+        this.orderId = rejectedShippingEvent.orderId;
+        this.itemType = rejectedShippingEvent.itemType;
+    }
+
+    @CommandHandler
+    protected void on(RollbackShippingCommand rollbackShippingCommand){
+        AggregateLifecycle.apply(new RollbackShippingCommand(rollbackShippingCommand.shippingId ,rollbackShippingCommand.orderId, rollbackShippingCommand.paymentId,  rollbackShippingCommand.itemType));
+    }
+
+    @EventSourcingHandler
+    protected void on(RollbackShippingEvent rollbackShippingEvent){
+        this.shippingId = rollbackShippingEvent.shippingId;
+        this.paymentId = rollbackShippingEvent.paymentId;
+        this.orderId = rollbackShippingEvent.orderId;
+        this.itemType = rollbackShippingEvent.itemType;
+    }
+
 }

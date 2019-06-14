@@ -2,7 +2,7 @@ package com.progressivecoder.paymentmanagement.paymentservice.command;
 
 import org.axonframework.modelling.command.TargetAggregateIdentifier;
 
-public class RejectedInvoiceCommand {
+public class RejectedPaymentCommand {
 
     @TargetAggregateIdentifier
     public final String paymentId;
@@ -11,7 +11,7 @@ public class RejectedInvoiceCommand {
 
     public final String ammount;
 
-    public RejectedInvoiceCommand(String paymentId, String orderId, String ammount) {
+    public RejectedPaymentCommand(String paymentId, String orderId, String ammount) {
         this.paymentId = paymentId;
         this.orderId = orderId;
         this.ammount = ammount;

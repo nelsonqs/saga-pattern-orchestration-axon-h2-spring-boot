@@ -2,7 +2,7 @@ package com.progressivecoder.ordermanagement.orderservice.commands;
 
 import org.axonframework.modelling.command.TargetAggregateIdentifier;
 
-public class CreateInvoiceCommand {
+public class RejectedPaymentCommand {
 
     @TargetAggregateIdentifier
     public final String paymentId;
@@ -10,7 +10,7 @@ public class CreateInvoiceCommand {
     public final String orderId;
     public final String item;
 
-    public CreateInvoiceCommand(String paymentId, String orderId, String item) {
+    public RejectedPaymentCommand(String paymentId, String orderId, String item) {
         this.paymentId = paymentId;
         this.orderId = orderId;
         this.item = item;

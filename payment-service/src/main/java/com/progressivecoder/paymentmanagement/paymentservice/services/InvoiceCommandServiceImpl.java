@@ -1,7 +1,8 @@
 package com.progressivecoder.paymentmanagement.paymentservice.services;
 
-import com.progressivecoder.paymentmanagement.paymentservice.command.CreateInvoiceCommand;
-import com.progressivecoder.paymentmanagement.paymentservice.command.RejectedInvoiceCommand;
+import com.progressivecoder.paymentmanagement.paymentservice.command.CreatePaymentCommand;
+import com.progressivecoder.paymentmanagement.paymentservice.command.RejectedPaymentCommand;
+import com.progressivecoder.paymentmanagement.paymentservice.command.RollbackPaymentCommand;
 import com.progressivecoder.paymentmanagement.paymentservice.commands.InvoiceCreateDTO;
 import com.progressivecoder.paymentmanagement.paymentservice.commands.RejectedInvoiceDTO;
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -19,12 +20,17 @@ public class InvoiceCommandServiceImpl implements InvoiceCommandService {
     }
 
     @Override
-    public CompletableFuture<String> invoiceOrder(InvoiceCreateDTO invoiceCreateDTO) {
-        return commandGateway.send(new CreateInvoiceCommand(invoiceCreateDTO.getPaymentId(), invoiceCreateDTO.getOrderId(), invoiceCreateDTO.getAmmount()));
+    public CompletableFuture<String> paymentCreated(InvoiceCreateDTO invoiceCreateDTO) {
+        return commandGateway.send(new CreatePaymentCommand(invoiceCreateDTO.getPaymentId(), invoiceCreateDTO.getOrderId(), invoiceCreateDTO.getAmmount()));
     }
 
     @Override
     public CompletableFuture<String> rejectedOrder(RejectedInvoiceDTO invoiceCreateDTO) {
-        return commandGateway.send(new RejectedInvoiceCommand(invoiceCreateDTO.getPaymentId(), invoiceCreateDTO.getOrderId(), invoiceCreateDTO.getAmmount()));
+        return commandGateway.send(new RejectedPaymentCommand(invoiceCreateDTO.getPaymentId(), invoiceCreateDTO.getOrderId(), invoiceCreateDTO.getAmmount()));
+    }
+
+    @Override
+    public CompletableFuture<String> rollbackPayment(RejectedInvoiceDTO invoiceCreateDTO) {
+        return commandGateway.send(new RollbackPaymentCommand(invoiceCreateDTO.getPaymentId(), invoiceCreateDTO.getOrderId(), invoiceCreateDTO.getAmmount()));
     }
 }

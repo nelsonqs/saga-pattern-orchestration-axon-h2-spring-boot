@@ -44,6 +44,8 @@ public class ComunicationServiceImpl implements ComunicationService {
                 formatted_URL = MessageFormat.format(Constants.LINK_PAYMENT_SERVICES, payment, order, ammount);
             } else if (status.equalsIgnoreCase(Constants.PAYMENT_REJECTED)) {
                 formatted_URL = MessageFormat.format(Constants.LINK_PAYMENT_REJECTED, payment, order, ammount);
+            } else if (status.equalsIgnoreCase(Constants.PAYMENT_ROLLBACK)) {
+                formatted_URL = MessageFormat.format(Constants.LINK_PAYMENT_ROLLBACK, payment, order, ammount);
             }
             response = restTemplate.exchange(formatted_URL, HttpMethod.POST, entity, String.class);
         }
@@ -86,11 +88,11 @@ public class ComunicationServiceImpl implements ComunicationService {
     }
 
     @Override
-    public String putCommandShipping(String shipping, String payment, String order, String item) {
+    public String putCommandShipping(String shipping, String payment, String order, String item, String status) {
         JSONObject info = new JSONObject();
         HttpHeaders headers = new HttpHeaders();
         headers.set("Accept", MediaType.APPLICATION_JSON_VALUE);
-
+        String formatted_URL = "";
         ShippingCreateDTO shippingCreateDTO = new ShippingCreateDTO();
         shippingCreateDTO.setShippingId(shipping);
         shippingCreateDTO.setPaymentId(payment);
@@ -102,7 +104,13 @@ public class ComunicationServiceImpl implements ComunicationService {
         restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
         try {
             //todo call to discovery to obtain Link Schemma
-            String formatted_URL = MessageFormat.format(Constants.LINK_SHIPPING_SERVICES, shipping,order,payment,item);
+            if (status.equalsIgnoreCase(Constants.SHIPPING_APPROVED)) {
+                formatted_URL = MessageFormat.format(Constants.LINK_SHIPPING_SERVICES, shipping,order,payment,item,Constants.SHIPPING_APPROVED);
+            } else if (status.equalsIgnoreCase(Constants.SHIPPING_ROLLBACK)) {
+                formatted_URL = MessageFormat.format(Constants.LINK_SHIPPING_ROLLBACK, shipping,order,payment,item,Constants.SHIPPING_ROLLBACK);
+            } else if (status.equalsIgnoreCase(Constants.SHIPPING_REJECTED)) {
+                formatted_URL = MessageFormat.format(Constants.LINK_SHIPPING_ROLLBACK, shipping,order,payment,item,Constants.SHIPPING_REJECTED);
+            }
             response = restTemplate.exchange(formatted_URL, HttpMethod.POST, entity, String.class);
         }
         catch (HttpServerErrorException e) {

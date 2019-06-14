@@ -3,6 +3,8 @@ package com.progressivecoder.ordermanagement.orderservice.services.commands;
 import com.progressivecoder.ordermanagement.orderservice.aggregates.OrderStatus;
 import com.progressivecoder.ordermanagement.orderservice.commands.CreateOrderCommand;
 import com.progressivecoder.ordermanagement.orderservice.commands.OrderCreateDTO;
+import com.progressivecoder.ordermanagement.orderservice.commands.RejectedOrderCommand;
+import com.progressivecoder.ordermanagement.orderservice.commands.RollbackOrderCommand;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.springframework.stereotype.Service;
 
@@ -22,5 +24,15 @@ public class OrderCommandServiceImpl implements OrderCommandService {
     public CompletableFuture<String> createOrder(OrderCreateDTO orderCreateDTO) {
         return commandGateway.send(new CreateOrderCommand(UUID.randomUUID().toString(), orderCreateDTO.getItemType(),
                 orderCreateDTO.getPrice(), orderCreateDTO.getCurrency(), String.valueOf(OrderStatus.CREATED)));
+    }
+    @Override
+    public CompletableFuture<String> rollbackOrder(OrderCreateDTO orderCreateDTO) {
+        return commandGateway.send(new RollbackOrderCommand(UUID.randomUUID().toString(), orderCreateDTO.getItemType(),
+                orderCreateDTO.getPrice(), orderCreateDTO.getCurrency(), String.valueOf(OrderStatus.ROLLBACK)));
+    }
+    @Override
+    public CompletableFuture<String> rejectedOrder(OrderCreateDTO orderCreateDTO) {
+        return commandGateway.send(new RejectedOrderCommand(UUID.randomUUID().toString(), orderCreateDTO.getItemType(),
+                orderCreateDTO.getPrice(), orderCreateDTO.getCurrency(), String.valueOf(OrderStatus.ROLLBACK)));
     }
 }

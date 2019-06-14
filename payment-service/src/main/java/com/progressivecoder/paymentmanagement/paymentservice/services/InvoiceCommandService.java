@@ -7,8 +7,10 @@ import java.util.concurrent.CompletableFuture;
 
 public interface InvoiceCommandService {
 
-    CompletableFuture<String> invoiceOrder(InvoiceCreateDTO orderCreateDTO);
+    CompletableFuture<String> paymentCreated(InvoiceCreateDTO orderCreateDTO);
 
     CompletableFuture<String> rejectedOrder(RejectedInvoiceDTO orderCreateDTO);
+
+    CompletableFuture<String> rollbackPayment(RejectedInvoiceDTO orderCreateDTO);
 
 }

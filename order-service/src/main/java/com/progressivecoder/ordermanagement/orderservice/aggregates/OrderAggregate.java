@@ -1,9 +1,13 @@
 package com.progressivecoder.ordermanagement.orderservice.aggregates;
 
 import com.progressivecoder.ordermanagement.orderservice.commands.CreateOrderCommand;
+import com.progressivecoder.ordermanagement.orderservice.commands.RejectedOrderCommand;
+import com.progressivecoder.ordermanagement.orderservice.commands.RollbackOrderCommand;
 import com.progressivecoder.ordermanagement.orderservice.commands.UpdateOrderStatusCommand;
 import com.progressivecoder.ordermanagement.orderservice.events.OrderCreatedEvent;
 import com.progressivecoder.ordermanagement.orderservice.events.OrderUpdatedEvent;
+import com.progressivecoder.ordermanagement.orderservice.events.RejectedOrderEvent;
+import com.progressivecoder.ordermanagement.orderservice.events.RollbackOrderEvent;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
 import org.axonframework.modelling.command.AggregateIdentifier;
@@ -31,8 +35,6 @@ public class OrderAggregate {
 
     @CommandHandler
     public OrderAggregate(CreateOrderCommand createOrderCommand){
-
-
         AggregateLifecycle.apply(new OrderCreatedEvent(createOrderCommand.orderId, createOrderCommand.itemType,
                 createOrderCommand.price, createOrderCommand.currency, createOrderCommand.orderStatus));
     }
@@ -56,4 +58,31 @@ public class OrderAggregate {
         this.orderId = orderId;
         this.orderStatus = OrderStatus.valueOf(orderUpdatedEvent.orderStatus);
     }
+
+    @CommandHandler
+    protected void on(RollbackOrderCommand rollbackOrderCommand){
+        AggregateLifecycle.apply(new RollbackOrderEvent(rollbackOrderCommand.orderId, rollbackOrderCommand.orderStatus));
+    }
+
+    @EventSourcingHandler
+    protected void on(RollbackOrderEvent rollbackOrderEvent){
+        this.orderId = orderId;
+        this.orderStatus = OrderStatus.valueOf(rollbackOrderEvent.orderStatus);
+    }
+
+    @CommandHandler
+    protected void on(RejectedOrderCommand createOrderCommand){
+        AggregateLifecycle.apply(new RejectedOrderCommand(createOrderCommand.orderId, createOrderCommand.itemType,
+                createOrderCommand.price, createOrderCommand.currency, createOrderCommand.orderStatus));
+    }
+
+    @EventSourcingHandler
+    protected void on(RejectedOrderEvent rollbackOrderEvent){
+        this.orderId = rollbackOrderEvent.orderId;
+        this.itemType = ItemType.valueOf(rollbackOrderEvent.itemType);
+        this.price = rollbackOrderEvent.price;
+        this.currency = rollbackOrderEvent.currency;
+        this.orderStatus = OrderStatus.valueOf(rollbackOrderEvent.orderStatus);
+    }
+
 }

@@ -1,0 +1,66 @@
+package com.progressivecoder.ordermanagement.orderservice.aggregates;
+
+import com.progressivecoder.ordermanagement.orderservice.commands.CreatePaymentCommand;
+import com.progressivecoder.ordermanagement.orderservice.commands.RejectedPaymentCommand;
+import com.progressivecoder.ordermanagement.orderservice.commands.RollbackPaymentCommand;
+import com.progressivecoder.ordermanagement.orderservice.events.PaymentCreatedEvent;
+import com.progressivecoder.ordermanagement.orderservice.events.RejectedPaymentEvent;
+import com.progressivecoder.ordermanagement.orderservice.events.RollbackPaymentEvent;
+import org.axonframework.commandhandling.CommandHandler;
+import org.axonframework.eventsourcing.EventSourcingHandler;
+import org.axonframework.modelling.command.AggregateIdentifier;
+import org.axonframework.modelling.command.AggregateLifecycle;
+import org.axonframework.spring.stereotype.Aggregate;
+
+@Aggregate
+public class PaymentAggregate {
+
+    @AggregateIdentifier
+    private String paymentId;
+
+    private String orderId;
+
+    private String item;
+
+    private InvoiceStatus invoiceStatus;
+
+    public PaymentAggregate() {
+    }
+
+    @CommandHandler
+    public PaymentAggregate(CreatePaymentCommand createPaymentCommand){
+        AggregateLifecycle.apply(new PaymentCreatedEvent(createPaymentCommand.paymentId, createPaymentCommand.orderId, createPaymentCommand.item));
+    }
+
+    @EventSourcingHandler
+    protected void on(PaymentCreatedEvent paymentCreatedEvent){
+        this.paymentId = paymentCreatedEvent.paymentId;
+        this.orderId = paymentCreatedEvent.orderId;
+        this.invoiceStatus = InvoiceStatus.PAID;
+        this.item = paymentCreatedEvent.item;
+    }
+
+    @CommandHandler
+    protected void on(RejectedPaymentCommand createOrderCommand){
+        AggregateLifecycle.apply(new RejectedPaymentCommand(createOrderCommand.paymentId, createOrderCommand.orderId, createOrderCommand.item));
+    }
+
+    @EventSourcingHandler
+    protected void on(RejectedPaymentEvent rejectedPaymentEvent){
+        this.paymentId = rejectedPaymentEvent.paymentId;
+        this.orderId = rejectedPaymentEvent.orderId;
+        this.item = rejectedPaymentEvent.item;
+    }
+
+    @CommandHandler
+    protected void on(RollbackPaymentCommand rollbackPaymentCommand){
+        AggregateLifecycle.apply(new RollbackPaymentCommand(rollbackPaymentCommand.paymentId, rollbackPaymentCommand.orderId, rollbackPaymentCommand.item));
+    }
+
+    @EventSourcingHandler
+    protected void on(RollbackPaymentEvent rollbackPaymentEvent){
+        this.paymentId = rollbackPaymentEvent.paymentId;
+        this.orderId = rollbackPaymentEvent.orderId;
+        this.item = rollbackPaymentEvent.item;
+    }
+}

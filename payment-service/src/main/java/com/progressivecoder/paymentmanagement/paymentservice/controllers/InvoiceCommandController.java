@@ -13,8 +13,6 @@ import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping(value = "api")
-
-
 @Api(value = "Payment Commands", description = "Payment Commands Related Endpoints", tags = "Payment Commands")
 public class InvoiceCommandController {
 
@@ -25,12 +23,18 @@ public class InvoiceCommandController {
     }
 
     @RequestMapping(value = "/payment", method = RequestMethod.POST)
-    public CompletableFuture<String> createOrder(@RequestBody InvoiceCreateDTO invoiceCreateDTO){
-        return invoiceCommandService.invoiceOrder(invoiceCreateDTO);
+    public CompletableFuture<String> createPayment(@RequestBody InvoiceCreateDTO invoiceCreateDTO){
+        return invoiceCommandService.paymentCreated(invoiceCreateDTO);
     }
 
     @RequestMapping(value = "/payment-rejected", method = RequestMethod.POST)
     public CompletableFuture<String> rejectedOrder(@RequestBody RejectedInvoiceDTO invoiceCreateDTO) {
         return invoiceCommandService.rejectedOrder(invoiceCreateDTO);
     }
+
+    @RequestMapping(value = "/payment-rollback", method = RequestMethod.POST)
+    public CompletableFuture<String> rollbackpayment(@RequestBody RejectedInvoiceDTO invoiceCreateDTO) {
+        return invoiceCommandService.rollbackPayment(invoiceCreateDTO);
+    }
+
 }

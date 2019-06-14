@@ -7,5 +7,7 @@ import java.util.concurrent.CompletableFuture;
 public interface OrderCommandService {
 
     public CompletableFuture<String> createOrder(OrderCreateDTO orderCreateDTO);
+    public CompletableFuture<String> rollbackOrder(OrderCreateDTO orderCreateDTO);
+    public CompletableFuture<String> rejectedOrder(OrderCreateDTO orderCreateDTO);
 
 }
