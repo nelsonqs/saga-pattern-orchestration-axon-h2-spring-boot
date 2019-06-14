@@ -29,6 +29,9 @@ public class InvoiceHandler {
     @EventSourcingHandler
     void on(RejectedPaymentEvent event1) {
         InvoiceEntity invoiceEntity =  invoiceRepository.findById(event1.paymentId).isPresent() ? invoiceRepository.findById(event1.paymentId).get() : new InvoiceEntity();
+        invoiceEntity.setPaymentId(event1.paymentId);
+        invoiceEntity.setOrderId(event1.orderId);
+        invoiceEntity.setAmmount(event1.ammount);
         invoiceEntity.setInvoiceStatus("REJECTED");
         invoiceRepository.save(invoiceEntity);
     }
@@ -36,8 +39,10 @@ public class InvoiceHandler {
 
     @EventSourcingHandler
     void on(RollbackPaymentEvent rollbackInvoiceEvent) {
-        InvoiceEntity invoiceEntity =  invoiceRepository.findById(rollbackInvoiceEvent.paymentId).isPresent() ? invoiceRepository.findById(rollbackInvoiceEvent.paymentId).get() : new InvoiceEntity();
-        invoiceRepository.delete(invoiceEntity);
+        if (invoiceRepository.findById(rollbackInvoiceEvent.paymentId).isPresent()) {
+            InvoiceEntity invoiceEntity = invoiceRepository.findById(rollbackInvoiceEvent.paymentId).get();
+            invoiceRepository.delete(invoiceEntity);
+        }
     }
 
     private InvoiceEntity findExistingOrCreateQueryAccount(String id){

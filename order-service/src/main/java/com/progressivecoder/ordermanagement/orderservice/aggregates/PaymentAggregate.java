@@ -22,6 +22,8 @@ public class PaymentAggregate {
 
     private String item;
 
+    private String ammount;
+
     private InvoiceStatus invoiceStatus;
 
     public PaymentAggregate() {
@@ -29,7 +31,7 @@ public class PaymentAggregate {
 
     @CommandHandler
     public PaymentAggregate(CreatePaymentCommand createPaymentCommand){
-        AggregateLifecycle.apply(new PaymentCreatedEvent(createPaymentCommand.paymentId, createPaymentCommand.orderId, createPaymentCommand.item));
+        AggregateLifecycle.apply(new PaymentCreatedEvent(createPaymentCommand.paymentId, createPaymentCommand.orderId, createPaymentCommand.item, createPaymentCommand.ammount));
     }
 
     @EventSourcingHandler
@@ -38,11 +40,12 @@ public class PaymentAggregate {
         this.orderId = paymentCreatedEvent.orderId;
         this.invoiceStatus = InvoiceStatus.PAID;
         this.item = paymentCreatedEvent.item;
+        this.ammount = paymentCreatedEvent.ammount;
     }
 
     @CommandHandler
-    protected void on(RejectedPaymentCommand createOrderCommand){
-        AggregateLifecycle.apply(new RejectedPaymentCommand(createOrderCommand.paymentId, createOrderCommand.orderId, createOrderCommand.item));
+    protected void on(RejectedPaymentCommand rejectedPaymentCommand) {
+        AggregateLifecycle.apply(new RejectedPaymentEvent(rejectedPaymentCommand.paymentId, rejectedPaymentCommand.orderId, rejectedPaymentCommand.item, rejectedPaymentCommand.ammount));
     }
 
     @EventSourcingHandler
@@ -50,11 +53,12 @@ public class PaymentAggregate {
         this.paymentId = rejectedPaymentEvent.paymentId;
         this.orderId = rejectedPaymentEvent.orderId;
         this.item = rejectedPaymentEvent.item;
+        this.ammount = rejectedPaymentEvent.ammount;
     }
 
     @CommandHandler
     protected void on(RollbackPaymentCommand rollbackPaymentCommand){
-        AggregateLifecycle.apply(new RollbackPaymentCommand(rollbackPaymentCommand.paymentId, rollbackPaymentCommand.orderId, rollbackPaymentCommand.item));
+        AggregateLifecycle.apply(new RollbackPaymentEvent(rollbackPaymentCommand.paymentId, rollbackPaymentCommand.orderId, rollbackPaymentCommand.item, rollbackPaymentCommand.ammount));
     }
 
     @EventSourcingHandler

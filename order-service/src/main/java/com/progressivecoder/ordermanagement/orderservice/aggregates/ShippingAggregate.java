@@ -20,13 +20,14 @@ public class ShippingAggregate {
     private String orderId;
     private String paymentId;
     private String itemType;
+    private String ammount;
 
     public ShippingAggregate() {
     }
 
     @CommandHandler
     public ShippingAggregate(CreateShippingCommand createShippingCommand){
-        AggregateLifecycle.apply(new OrderShippedEvent(createShippingCommand.shippingId, createShippingCommand.orderId, createShippingCommand.paymentId, createShippingCommand.itemType));
+        AggregateLifecycle.apply(new OrderShippedEvent(createShippingCommand.shippingId, createShippingCommand.orderId, createShippingCommand.paymentId, createShippingCommand.itemType, createShippingCommand.ammount));
     }
 
     @EventSourcingHandler
@@ -35,11 +36,12 @@ public class ShippingAggregate {
         this.orderId = orderShippedEvent.orderId;
         this.paymentId = orderShippedEvent.paymentId;
         this.itemType = orderShippedEvent.itemType;
+        this.ammount = orderShippedEvent.ammount;
     }
 
     @CommandHandler
     protected void on(RejectedShippingCommand createOrderCommand){
-        AggregateLifecycle.apply(new RejectedShippingCommand(createOrderCommand.shippingId ,createOrderCommand.orderId, createOrderCommand.paymentId,  createOrderCommand.itemType));
+        AggregateLifecycle.apply(new RejectedShippingEvent(createOrderCommand.shippingId, createOrderCommand.orderId, createOrderCommand.paymentId, createOrderCommand.itemType, createOrderCommand.ammount));
     }
 
     @EventSourcingHandler
@@ -48,11 +50,12 @@ public class ShippingAggregate {
         this.paymentId = rejectedShippingEvent.paymentId;
         this.orderId = rejectedShippingEvent.orderId;
         this.itemType = rejectedShippingEvent.itemType;
+        this.ammount = rejectedShippingEvent.ammount;
     }
 
     @CommandHandler
     protected void on(RollbackShippingCommand rollbackShippingCommand){
-        AggregateLifecycle.apply(new RollbackShippingCommand(rollbackShippingCommand.shippingId ,rollbackShippingCommand.orderId, rollbackShippingCommand.paymentId,  rollbackShippingCommand.itemType));
+        AggregateLifecycle.apply(new RollbackShippingEvent(rollbackShippingCommand.shippingId, rollbackShippingCommand.orderId, rollbackShippingCommand.paymentId, rollbackShippingCommand.itemType));
     }
 
     @EventSourcingHandler

@@ -1,7 +1,6 @@
 package com.progressivecoder.paymentmanagement.paymentservice.config;
 
 import com.progressivecoder.paymentmanagement.paymentservice.aggregates.InvoiceAggregate;
-import com.progressivecoder.paymentmanagement.paymentservice.aggregates.RejectedAggregate;
 import org.axonframework.eventsourcing.EventSourcingRepository;
 import org.axonframework.eventsourcing.eventstore.EventStore;
 import org.springframework.context.annotation.Bean;
@@ -16,9 +15,4 @@ public class AxonConfig {
         return repository;
     }
 
-    @Bean
-    EventSourcingRepository<RejectedAggregate> rejectedAggregateEventSourcingRepository(EventStore eventStore) {
-        EventSourcingRepository<RejectedAggregate> repository = EventSourcingRepository.builder(RejectedAggregate.class).eventStore(eventStore).build();
-        return repository;
-    }
 }

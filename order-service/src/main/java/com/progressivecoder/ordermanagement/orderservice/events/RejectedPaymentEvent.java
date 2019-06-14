@@ -8,10 +8,13 @@ public class RejectedPaymentEvent {
 
     public final String item;
 
+    public final String ammount;
 
-    public RejectedPaymentEvent(String paymentId, String orderId, String item) {
+
+    public RejectedPaymentEvent(String paymentId, String orderId, String item, String ammount) {
         this.paymentId = paymentId;
         this.orderId = orderId;
         this.item = item;
+        this.ammount = ammount;
     }
 }

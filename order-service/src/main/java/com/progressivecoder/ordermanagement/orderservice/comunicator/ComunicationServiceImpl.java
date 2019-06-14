@@ -1,7 +1,6 @@
 package com.progressivecoder.ordermanagement.orderservice.comunicator;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonParser;
 import com.progressivecoder.ordermanagement.orderservice.commands.InvoiceCreateDTO;
 import com.progressivecoder.ordermanagement.orderservice.commands.ShippingCreateDTO;
 import com.progressivecoder.ordermanagement.orderservice.config.Constants;
@@ -31,8 +30,8 @@ public class ComunicationServiceImpl implements ComunicationService {
         headers.set("Accept", MediaType.APPLICATION_JSON_VALUE);
 
         InvoiceCreateDTO invoiceCreateDTO = new InvoiceCreateDTO();
-        invoiceCreateDTO.setOrderId(order);
         invoiceCreateDTO.setPaymentId(payment);
+        invoiceCreateDTO.setOrderId(order);
         invoiceCreateDTO.setAmmount(ammount);
         HttpEntity<?> entity = new HttpEntity<>(invoiceCreateDTO, headers);
 
@@ -58,25 +57,9 @@ public class ComunicationServiceImpl implements ComunicationService {
         }
         if (response.getStatusCode() == HttpStatus.OK) {
             try {
-                JsonParser parser = new JsonParser();
-                parser.parse(response.getBody());
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
-            try {
                 Gson gson = new Gson();
                 String dsdsd = gson.toJson(response.getBody());
                 return dsdsd;
-//                JSONObject jsonObject = new JSONObject(response.getBody());
-//                if (!jsonObject.isNull("content")) {
-//                    if (jsonObject.getJSONObject("content") instanceof JSONObject){
-//                        info = new JSONObject(response.getBody()).getJSONObject("content");
-//                        return info;
-//                    }
-//                } else if (!jsonObject.isNull("errors")) {
-//
-//                }
             } catch (JSONException e) {
                e.printStackTrace();
                 return null;
@@ -105,11 +88,11 @@ public class ComunicationServiceImpl implements ComunicationService {
         try {
             //todo call to discovery to obtain Link Schemma
             if (status.equalsIgnoreCase(Constants.SHIPPING_APPROVED)) {
-                formatted_URL = MessageFormat.format(Constants.LINK_SHIPPING_SERVICES, shipping,order,payment,item,Constants.SHIPPING_APPROVED);
+                formatted_URL = MessageFormat.format(Constants.LINK_SHIPPING_SERVICES, shipping, order, payment, item);
             } else if (status.equalsIgnoreCase(Constants.SHIPPING_ROLLBACK)) {
-                formatted_URL = MessageFormat.format(Constants.LINK_SHIPPING_ROLLBACK, shipping,order,payment,item,Constants.SHIPPING_ROLLBACK);
+                formatted_URL = MessageFormat.format(Constants.LINK_SHIPPING_ROLLBACK, shipping, order, payment, item);
             } else if (status.equalsIgnoreCase(Constants.SHIPPING_REJECTED)) {
-                formatted_URL = MessageFormat.format(Constants.LINK_SHIPPING_ROLLBACK, shipping,order,payment,item,Constants.SHIPPING_REJECTED);
+                formatted_URL = MessageFormat.format(Constants.LINK_SHIPPING_REJECTED, shipping, order, payment, item);
             }
             response = restTemplate.exchange(formatted_URL, HttpMethod.POST, entity, String.class);
         }
@@ -122,25 +105,9 @@ public class ComunicationServiceImpl implements ComunicationService {
         }
         if (response.getStatusCode() == HttpStatus.OK) {
             try {
-                JsonParser parser = new JsonParser();
-                parser.parse(response.getBody());
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
-            try {
                 Gson gson = new Gson();
                 String dsdsd = gson.toJson(response.getBody());
                 return dsdsd;
-//                JSONObject jsonObject = new JSONObject(response.getBody());
-//                if (!jsonObject.isNull("content")) {
-//                    if (jsonObject.getJSONObject("content") instanceof JSONObject){
-//                        info = new JSONObject(response.getBody()).getJSONObject("content");
-//                        return info;
-//                    }
-//                } else if (!jsonObject.isNull("errors")) {
-//
-//                }
             } catch (JSONException e) {
                 e.printStackTrace();
                 return null;

@@ -28,15 +28,21 @@ public class ShippingHandler {
 
     @EventSourcingHandler
     void on(RollbackShippedEvent event){
-        ShippingEntity shippingEntity =  shippingRepository.findById(event.shippingId).isPresent() ? shippingRepository.findById(event.shippingId).get() : new ShippingEntity();
-        shippingRepository.delete(shippingEntity);
+        if (shippingRepository.findById(event.shippingId).isPresent()) {
+            ShippingEntity shippingEntity = shippingRepository.findById(event.shippingId).get();
+            shippingRepository.delete(shippingEntity);
+        }
     }
 
     @EventSourcingHandler
     void on(RejectedShippedEvent event){
         ShippingEntity shippingEntity =  shippingRepository.findById(event.shippingId).isPresent() ? shippingRepository.findById(event.shippingId).get() : new ShippingEntity();
+        shippingEntity.setShippingId(event.shippingId);
+        shippingEntity.setOrderId(event.orderId);
+        shippingEntity.setPaymentId(event.paymentId);
+        shippingEntity.setItem(event.item);
         shippingEntity.setStatus("Rejected");
-        shippingRepository.delete(shippingEntity);
+        shippingRepository.save(shippingEntity);
     }
 
     private ShippingEntity findExistingOrCreateQueryAccount(String id){

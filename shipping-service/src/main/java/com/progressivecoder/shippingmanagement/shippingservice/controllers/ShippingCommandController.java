@@ -3,7 +3,10 @@ package com.progressivecoder.shippingmanagement.shippingservice.controllers;
 import com.progressivecoder.shippingmanagement.shippingservice.dto.ShippingCreateDTO;
 import com.progressivecoder.shippingmanagement.shippingservice.services.ShippingCommandService;
 import io.swagger.annotations.Api;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -30,6 +33,6 @@ public class ShippingCommandController {
 
     @RequestMapping(value = "/shipping-rejected", method = RequestMethod.POST)
     public CompletableFuture<String> createShippingRejected(@RequestBody ShippingCreateDTO  shippingCreateDTO){
-        return shippingCommandService.shippingRollbackOrder(shippingCreateDTO);
+        return shippingCommandService.shippingRejectedOrder(shippingCreateDTO);
     }
 }

@@ -1,6 +1,7 @@
 package com.progressivecoder.shippingmanagement.shippingservice.services;
 
 import com.progressivecoder.shippingmanagement.shippingservice.command.CreateShippingCommand;
+import com.progressivecoder.shippingmanagement.shippingservice.command.RejectedShippingCommand;
 import com.progressivecoder.shippingmanagement.shippingservice.command.RollbackShippingCommand;
 import com.progressivecoder.shippingmanagement.shippingservice.dto.ShippingCreateDTO;
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -29,6 +30,6 @@ public class ShippingCommandServiceImpl implements ShippingCommandService {
 
     @Override
     public CompletableFuture<String> shippingRejectedOrder(ShippingCreateDTO invoiceCreateDTO) {
-        return commandGateway.send(new RollbackShippingCommand(invoiceCreateDTO.getShippingId(), invoiceCreateDTO.getOrderId(), invoiceCreateDTO.getPaymentId(), invoiceCreateDTO.getItem()));
+        return commandGateway.send(new RejectedShippingCommand(invoiceCreateDTO.getShippingId(), invoiceCreateDTO.getOrderId(), invoiceCreateDTO.getPaymentId(), invoiceCreateDTO.getItem()));
     }
 }

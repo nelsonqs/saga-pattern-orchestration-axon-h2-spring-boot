@@ -72,7 +72,7 @@ public class OrderAggregate {
 
     @CommandHandler
     protected void on(RejectedOrderCommand createOrderCommand){
-        AggregateLifecycle.apply(new RejectedOrderCommand(createOrderCommand.orderId, createOrderCommand.itemType,
+        AggregateLifecycle.apply(new RejectedOrderEvent(createOrderCommand.orderId, createOrderCommand.itemType,
                 createOrderCommand.price, createOrderCommand.currency, createOrderCommand.orderStatus));
     }
 

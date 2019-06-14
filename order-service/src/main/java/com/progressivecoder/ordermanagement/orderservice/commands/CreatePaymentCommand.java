@@ -9,10 +9,12 @@ public class CreatePaymentCommand {
 
     public final String orderId;
     public final String item;
+    public final String ammount;
 
-    public CreatePaymentCommand(String paymentId, String orderId, String item) {
+    public CreatePaymentCommand(String paymentId, String orderId, String item, String ammount) {
         this.paymentId = paymentId;
         this.orderId = orderId;
         this.item = item;
+        this.ammount = ammount;
     }
 }
