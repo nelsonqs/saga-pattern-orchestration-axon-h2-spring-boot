@@ -21,13 +21,15 @@ public class ShippingAggregate {
     private String paymentId;
     private String itemType;
     private String ammount;
+    private String rejected;
+    private String rollback;
 
     public ShippingAggregate() {
     }
 
     @CommandHandler
     public ShippingAggregate(CreateShippingCommand createShippingCommand){
-        AggregateLifecycle.apply(new OrderShippedEvent(createShippingCommand.shippingId, createShippingCommand.orderId, createShippingCommand.paymentId, createShippingCommand.itemType, createShippingCommand.ammount));
+        AggregateLifecycle.apply(new OrderShippedEvent(createShippingCommand.shippingId, createShippingCommand.orderId, createShippingCommand.paymentId, createShippingCommand.itemType, createShippingCommand.ammount, createShippingCommand.rejected, createShippingCommand.rollback));
     }
 
     @EventSourcingHandler
@@ -37,6 +39,8 @@ public class ShippingAggregate {
         this.paymentId = orderShippedEvent.paymentId;
         this.itemType = orderShippedEvent.itemType;
         this.ammount = orderShippedEvent.ammount;
+        this.rejected = orderShippedEvent.rejected;
+        this.rollback = orderShippedEvent.rollback;
     }
 
     @CommandHandler

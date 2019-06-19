@@ -98,9 +98,14 @@ public class OrderManagementSaga {
     @SagaEventHandler(associationProperty = "shippingId")
     public void handle(OrderShippedEvent orderShippedEvent) {
         String statusShipping;
-        statusShipping = Constants.SHIPPING_APPROVED;
-        //statusShipping = Constants.SHIPPING_REJECTED;
-        //statusShipping = Constants.SHIPPING_ROLLBACK;
+
+        if (!orderShippedEvent.rejected.isEmpty() && orderShippedEvent.rejected.equalsIgnoreCase(Constants.SHIPPING_REJECTED)){
+            statusShipping = Constants.SHIPPING_REJECTED;
+        }else if (!orderShippedEvent.rollback.isEmpty() && orderShippedEvent.rollback.equalsIgnoreCase(Constants.SHIPPING_ROLLBACK)){
+            statusShipping = Constants.SHIPPING_ROLLBACK;
+        }else {
+            statusShipping = Constants.SHIPPING_APPROVED;
+        }
         if (statusShipping.equalsIgnoreCase(Constants.SHIPPING_APPROVED)) {
             String shippingMSId = comunicationService.putCommandShipping(orderShippedEvent.shippingId, orderShippedEvent.paymentId, orderShippedEvent.orderId,orderShippedEvent.itemType, statusShipping);
             log.info("Result OK!!!, to call << Shipping >> Micro Service: ");
