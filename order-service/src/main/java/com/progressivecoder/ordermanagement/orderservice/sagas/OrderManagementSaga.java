@@ -48,12 +48,17 @@ public class OrderManagementSaga {
             orderRepository.save(orderCreateEntity);
             log.info("Order created Id " + orderCreatedEvent.orderId);
         }
-        orderStatus = Constants.ORDER_CREATED_STATUS;
-        //orderStatus = Constants.ORDER_REJECTED_STATUS;
-        //orderStatus = Constants.ORDER_ROLLBACK_STATUS;
+
+        if (!orderCreatedEvent.rejected.isEmpty() && orderCreatedEvent.rejected.equalsIgnoreCase(Constants.ORDER_REJECTED_STATUS)){
+          orderStatus = Constants.ORDER_REJECTED_STATUS;
+        } else if (!orderCreatedEvent.rollback.isEmpty() && orderCreatedEvent.rollback.equalsIgnoreCase(Constants.ORDER_ROLLBACK_STATUS)){
+          orderStatus = Constants.ORDER_ROLLBACK_STATUS;
+        } else  {
+          orderStatus = Constants.ORDER_CREATED_STATUS;
+        }
         if (orderStatus.equalsIgnoreCase(Constants.ORDER_CREATED_STATUS)) {
             SagaLifecycle.associateWith("paymentId", paymentId);
-            commandGateway.send(new CreatePaymentCommand(paymentId, orderCreatedEvent.orderId, orderCreatedEvent.itemType, String.valueOf(orderCreatedEvent.price)));
+            commandGateway.send(new CreatePaymentCommand(paymentId, orderCreatedEvent.orderId, orderCreatedEvent.itemType, String.valueOf(orderCreatedEvent.price), orderCreatedEvent.rejected, orderCreatedEvent.rollback));
         } else if (orderStatus.equalsIgnoreCase(Constants.ORDER_REJECTED_STATUS)) {
             log.info("Rejected ...  ");
             commandGateway.send(new RejectedOrderCommand(orderCreatedEvent.orderId, orderCreatedEvent.itemType,
@@ -69,14 +74,18 @@ public class OrderManagementSaga {
     public void handle(PaymentCreatedEvent paymentCreatedEvent) {
         String shippingId = UUID.randomUUID().toString();
         String paymmentStatus;
-        paymmentStatus = Constants.PAYMENT_APPROVED;
-        //paymmentStatus = Constants.PAYMENT_REJECTED;
-        //paymmentStatus = Constants.PAYMENT_ROLLBACK;
+        if (!paymentCreatedEvent.rejected.isEmpty() && paymentCreatedEvent.rejected.equalsIgnoreCase(Constants.PAYMENT_REJECTED)){
+            paymmentStatus = Constants.PAYMENT_REJECTED;
+        }else if (!paymentCreatedEvent.rollback.isEmpty() && paymentCreatedEvent.rollback.equalsIgnoreCase(Constants.PAYMENT_ROLLBACK)){
+            paymmentStatus = Constants.PAYMENT_ROLLBACK;
+        }else {
+            paymmentStatus = Constants.PAYMENT_APPROVED;
+        }
         if (paymmentStatus.equalsIgnoreCase(Constants.PAYMENT_APPROVED)) {
             String paymentMSId = comunicationService.paymentRest(paymentCreatedEvent.paymentId, paymentCreatedEvent.orderId, paymentCreatedEvent.ammount, paymmentStatus);
             SagaLifecycle.associateWith("shippingId", shippingId);
             log.info("Result OK!!!, to call << Payment >> Micro Service: ");
-            commandGateway.send(new CreateShippingCommand(shippingId, paymentCreatedEvent.orderId, paymentCreatedEvent.paymentId, paymentCreatedEvent.item, paymentCreatedEvent.ammount));
+            commandGateway.send(new CreateShippingCommand(shippingId, paymentCreatedEvent.orderId, paymentCreatedEvent.paymentId, paymentCreatedEvent.item, paymentCreatedEvent.ammount, paymentCreatedEvent.rejected, paymentCreatedEvent.rollback));
         } else if (paymmentStatus.equalsIgnoreCase(Constants.PAYMENT_REJECTED)) {
             log.info("Rejected ...  ");
             commandGateway.send(new RejectedPaymentCommand(paymentCreatedEvent.paymentId, paymentCreatedEvent.orderId, paymentCreatedEvent.item, paymentCreatedEvent.ammount));

@@ -14,11 +14,17 @@ public class OrderCreatedEvent {
 
     public final String orderStatus;
 
-    public OrderCreatedEvent(String orderId, String itemType, BigDecimal price, String currency, String orderStatus) {
+    public final String rejected;
+
+    public final String rollback;
+
+    public OrderCreatedEvent(String orderId, String itemType, BigDecimal price, String currency, String orderStatus, String rejected, String rollback) {
         this.orderId = orderId;
         this.itemType = itemType;
         this.price = price;
         this.currency = currency;
         this.orderStatus = orderStatus;
+        this.rejected = rejected;
+        this.rollback = rollback;
     }
 }

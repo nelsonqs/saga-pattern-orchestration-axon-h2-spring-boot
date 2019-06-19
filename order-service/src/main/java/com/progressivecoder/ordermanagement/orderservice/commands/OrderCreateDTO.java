@@ -10,6 +10,10 @@ public class OrderCreateDTO {
 
     private String currency;
 
+    private String rejected;
+
+    private String rollback;
+
     public String getItemType() {
         return itemType;
     }
@@ -32,5 +36,21 @@ public class OrderCreateDTO {
 
     public void setCurrency(String currency) {
         this.currency = currency;
+    }
+
+    public String getRejected() {
+        return rejected;
+    }
+
+    public void setRejected(String rejected) {
+        this.rejected = rejected;
+    }
+
+    public String getRollback() {
+        return rollback;
+    }
+
+    public void setRollback(String rollback) {
+        this.rollback = rollback;
     }
 }

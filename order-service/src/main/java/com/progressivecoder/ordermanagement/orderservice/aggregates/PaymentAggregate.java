@@ -26,12 +26,16 @@ public class PaymentAggregate {
 
     private InvoiceStatus invoiceStatus;
 
+    private String rejected;
+
+    private String rollback;
+
     public PaymentAggregate() {
     }
 
     @CommandHandler
     public PaymentAggregate(CreatePaymentCommand createPaymentCommand){
-        AggregateLifecycle.apply(new PaymentCreatedEvent(createPaymentCommand.paymentId, createPaymentCommand.orderId, createPaymentCommand.item, createPaymentCommand.ammount));
+        AggregateLifecycle.apply(new PaymentCreatedEvent(createPaymentCommand.paymentId, createPaymentCommand.orderId, createPaymentCommand.item, createPaymentCommand.ammount, createPaymentCommand.rejected, createPaymentCommand.rollback));
     }
 
     @EventSourcingHandler
@@ -41,6 +45,8 @@ public class PaymentAggregate {
         this.invoiceStatus = InvoiceStatus.PAID;
         this.item = paymentCreatedEvent.item;
         this.ammount = paymentCreatedEvent.ammount;
+        this.rejected = paymentCreatedEvent.rejected;
+        this.rollback = paymentCreatedEvent.rollback;
     }
 
     @CommandHandler

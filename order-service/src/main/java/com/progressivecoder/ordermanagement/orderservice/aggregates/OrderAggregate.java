@@ -30,13 +30,17 @@ public class OrderAggregate {
 
     private OrderStatus orderStatus;
 
+    private String rejected;
+
+    private String rollback;
+
     public OrderAggregate() {
     }
 
     @CommandHandler
     public OrderAggregate(CreateOrderCommand createOrderCommand){
         AggregateLifecycle.apply(new OrderCreatedEvent(createOrderCommand.orderId, createOrderCommand.itemType,
-                createOrderCommand.price, createOrderCommand.currency, createOrderCommand.orderStatus));
+                createOrderCommand.price, createOrderCommand.currency, createOrderCommand.orderStatus, createOrderCommand.rejected, createOrderCommand.rollback));
     }
 
     @EventSourcingHandler
@@ -46,6 +50,8 @@ public class OrderAggregate {
         this.price = orderCreatedEvent.price;
         this.currency = orderCreatedEvent.currency;
         this.orderStatus = OrderStatus.valueOf(orderCreatedEvent.orderStatus);
+        this.rejected = orderCreatedEvent.rejected;
+        this.rollback = orderCreatedEvent.rollback;
     }
 
     @CommandHandler
